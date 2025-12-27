@@ -11,15 +11,14 @@ __author__ = "Inference Optimization Team"
 
 # Package-level imports for convenience
 from src.models import ResNet50Model, GPT2Model, DistilBERTModel
-# TODO: Uncomment when benchmarking and profiling modules are implemented
-# from src.benchmarking import Benchmark, BenchmarkResult
+from src.benchmarking import Benchmark, InferenceMetrics
 # from src.profiling import InferenceProfiler
 
 __all__ = [
     "ResNet50Model",
     "GPT2Model", 
     "DistilBERTModel",
-    # "Benchmark",
-    # "BenchmarkResult",
+    "Benchmark",
+    "InferenceMetrics",
     # "InferenceProfiler",
 ]

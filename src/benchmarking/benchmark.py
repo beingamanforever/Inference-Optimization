@@ -1,6 +1,9 @@
 import time
 import torch
-import pynvml
+try:
+    import pynvml
+except ImportError:
+    pynvml = None
 import psutil
 import os
 from typing import List
@@ -20,7 +23,7 @@ class Benchmark:
         # NVML setup
         self.nvml_available = False
         self.gpu_handle = None
-        if self.device == "cuda":
+        if self.device == "cuda" and pynvml is not None:
             try:
                 pynvml.nvmlInit()
                 self.gpu_handle = pynvml.nvmlDeviceGetHandleByIndex(0)
