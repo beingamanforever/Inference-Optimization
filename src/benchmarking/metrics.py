@@ -6,62 +6,89 @@ import numpy as np
 @dataclass
 class InferenceMetrics:
     """
-    Metrics container for ML inference optimization.
-
-    This class is designed to answer the core questions of inference systems:
-    1. Is optimization helping real users?
-    2. Where is time going (compute vs system)?
-    3. What limits scale (throughput, batching, KV-cache)?
-    4. Why does tail latency exist?
+    Metrics container for inference benchmarking results.
+    Captures latency, throughput and resource utilization
     """
-
-    # --------------------
     # Identification
-    # --------------------
-    model_name: str
-    backend: str              # PyTorch / ONNX Runtime / TensorRT
+    model_name: str           # Model class name: ResNet50, GPT-2, etc.
+    backend: str              # Backend: PyTorch / ONNX Runtime / TensorRT
     device: str               # CPU / GPU
-    batch_size: int
+    batch_size: int           # Batch size used
 
-    # --------------------
     # End-to-End Latency
     # Raw samples in milliseconds (after warmup)
-    # --------------------
     latencies_ms: List[float] = field(default_factory=list)
 
-    # --------------------
     # Latency decomposition (milliseconds)
-    # --------------------
     compute_latencies_ms: List[float] = field(default_factory=list)
     queue_wait_latencies_ms: List[float] = field(default_factory=list)
 
-    # --------------------
     # Throughput (ground truth)
-    # --------------------
     total_items_processed: int = 0
     total_time_seconds: float = 0.0
 
-    # --------------------
     # Resource utilization
-    # --------------------
     gpu_utilization_percent: float = 0.0
     cpu_utilization_percent: float = 0.0
     memory_allocated_mb: float = 0.0
     memory_reserved_mb: float = 0.0
 
-    # --------------------
     # LLM-specific metrics
-    # --------------------
     prefill_latency_ms: Optional[float] = None          # Initial prompt processing
     decode_latency_ms_per_token: Optional[float] = None # Per-token decode latency
     tokens_processed: Optional[int] = None
     kv_cache_memory_mb: Optional[float] = None
     kv_cache_decode_speedup: Optional[float] = None     # e.g. 5x, 10x
-
-    # --------------------
+    
     # Throughput stability
-    # --------------------
     throughput_samples: List[float] = field(default_factory=list)
+
+    # ======================================================================
+    # String Representation
+    # ======================================================================
+
+    def __str__(self) -> str:
+        """Human-readable summary of benchmark results."""
+        return (
+            f"InferenceMetrics(model={self.model_name}, backend={self.backend}, "
+            f"device={self.device}, batch={self.batch_size}, "
+            f"p50={self.p50_latency_ms:.2f}ms, p99={self.p99_latency_ms:.2f}ms, "
+            f"throughput={self.throughput_items_per_sec:.2f} items/s)"
+        )
+
+    def __repr__(self) -> str:
+        """Detailed representation for debugging."""
+        return self.__str__()
+
+    # ======================================================================
+    # Validation and Basic Properties
+    # ======================================================================
+
+    def validate(self) -> tuple[bool, str]:
+        """
+        Validate that metrics are internally consistent.
+        
+        Returns:
+            Tuple of (is_valid, error_message)
+            - If valid: (True, "")
+            - If invalid: (False, "error description")
+        """
+        if self.batch_size <= 0:
+            return False, f"Invalid batch_size: {self.batch_size} (must be > 0)"
+        
+        if len(self.latencies_ms) == 0:
+            return False, "No latency measurements collected"
+        
+        if self.total_time_seconds <= 0:
+            return False, f"Invalid total_time: {self.total_time_seconds}s (must be > 0)"
+        
+        if self.total_items_processed != self.batch_size * len(self.latencies_ms):
+            return False, (
+                f"Inconsistent counts: total_items={self.total_items_processed}, "
+                f"but batch_size * n_samples = {self.batch_size * len(self.latencies_ms)}"
+            )
+        
+        return True, ""
 
     # ======================================================================
     # Latency statistics — END TO END (USER VISIBLE)
@@ -159,6 +186,36 @@ class InferenceMetrics:
         if self.tokens_processed is not None and self.total_time_seconds > 0:
             return self.tokens_processed / self.total_time_seconds
         return 0.0
+
+    # ======================================================================
+    # Summary
+    # ======================================================================
+
+    def summary(self) -> str:
+        """
+        Generate a concise text summary of key metrics.
+        Useful for logging and quick analysis.
+        """
+        return (
+            f"\n{'='*60}\n"
+            f"Model: {self.model_name} ({self.backend})\n"
+            f"Device: {self.device} | Batch Size: {self.batch_size}\n"
+            f"{'-'*60}\n"
+            f"Latency Statistics ({self.n_samples} samples):\n"
+            f"  P50: {self.p50_latency_ms:.2f} ms\n"
+            f"  P90: {self.p90_latency_ms:.2f} ms\n"
+            f"  P95: {self.p95_latency_ms:.2f} ms\n"
+            f"  P99: {self.p99_latency_ms:.2f} ms\n"
+            f"  Min: {self.min_latency_ms:.2f} ms\n"
+            f"  Max: {self.max_latency_ms:.2f} ms\n"
+            f"{'-'*60}\n"
+            f"Throughput: {self.throughput_items_per_sec:.2f} items/sec\n"
+            f"Memory: {self.memory_allocated_mb:.1f} MB allocated, "
+            f"{self.memory_reserved_mb:.1f} MB reserved\n"
+            f"Utilization: GPU {self.gpu_utilization_percent:.1f}% | "
+            f"CPU {self.cpu_utilization_percent:.1f}%\n"
+            f"{'='*60}\n"
+        )
 
     # ======================================================================
     # Export

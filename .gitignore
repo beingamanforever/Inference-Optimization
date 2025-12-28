@@ -1,0 +1,34 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Outputs
+week1/benchmarks/*.csv
+week1/benchmarks/*.json
+week1/experiments/**/*.json
+week1/plots/*.png
+test_logs/
+
+# Models cache
+.cache/
+models/
+
+# Jupyter
+.ipynb_checkpoints/

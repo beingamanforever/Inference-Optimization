@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  optimizer:
+    build: .
+    image: inference-opt:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - .:/workspace
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: /bin/bash

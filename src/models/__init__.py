@@ -1,13 +1,5 @@
-"""Model wrappers for inference benchmarking."""
+from .resnet import ResNet50ModelWrapper
+from .gpt2 import GPT2ModelWrapper
+from .distilbert import DistilBERTModelWrapper
 
-from .base import BaseModel
-from .resnet import ResNet50Model
-from .gpt2 import GPT2Model
-from .distilbert import DistilBERTModel
-
-__all__ = [
-    "BaseModel",
-    "ResNet50Model",
-    "GPT2Model",
-    "DistilBERTModel",
-]
+__all__ = ["ResNet50ModelWrapper", "GPT2ModelWrapper", "DistilBERTModelWrapper"]

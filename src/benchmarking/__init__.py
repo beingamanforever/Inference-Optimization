@@ -2,7 +2,7 @@
 Benchmarking framework for inference optimization.
 
 Exposes:
-- BenchmarkRunner: executes benchmarks and collects metrics
+- Benchmark: executes benchmarks and collects metrics
 - InferenceMetrics: structured performance metrics
 - BenchmarkReporter: presentation and persistence of results
 """

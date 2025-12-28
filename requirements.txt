@@ -1,0 +1,10 @@
+torch>=2.1.0
+torchvision
+transformers
+psutil
+pynvml
+pandas
+matplotlib
+seaborn
+tqdm
+rich

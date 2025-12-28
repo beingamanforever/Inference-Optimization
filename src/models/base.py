@@ -23,31 +23,29 @@ class BaseModel(ABC):
         model (nn.Module): The actual PyTorch model
     """
     
-    def __init__(self, device: str = "cuda"):
-        """Initialize base model.
+    def __init__(self, device: str = "cpu"):
+        """Initialize the model wrapper.
         
         Args:
-            device: Device to run model on ('cuda' or 'cpu')
-        
-        Raises:
-            RuntimeError: If CUDA is requested but not available
+            device: Target device ('cpu', 'cuda', or 'mps')
         """
-        # Validate device
+        # Validate and normalize device
         if device == "cuda" and not torch.cuda.is_available():
-            print("⚠️  CUDA requested but not available. Falling back to CPU.")
+            print("Warning: CUDA requested but not available. Falling back to CPU.")
+            device = "cpu"
+        elif device == "mps" and not torch.backends.mps.is_available():
+            print("Warning: MPS requested but not available. Falling back to CPU.")
             device = "cpu"
         
         self.device = device
+        self.backend = "PyTorch"  # Required by benchmarking suite
         self.model: nn.Module = None
         
         # Setup model (implemented by subclass)
         self._setup_model()
         
-        # Verify model was created
         if self.model is None:
-            raise RuntimeError(
-                f"{self.__class__.__name__}._setup_model() did not create a model"
-            )
+            raise RuntimeError(f"{self.__class__.__name__}._setup_model() did not create a model")
     
     @abstractmethod
     def _setup_model(self):
@@ -166,7 +164,7 @@ class BaseModel(ABC):
         """
         return "Not implemented"
     
-    def warmup(self, num_iterations: int = 10, batch_size: int = 1):
+    def warmup(self, num_iterations: int = 10, batch_size: int = 1) -> None:
         """Warmup the model with dummy forward passes.
         
         This is important for accurate benchmarking as the first few
@@ -184,23 +182,28 @@ class BaseModel(ABC):
         for i in range(num_iterations):
             _ = self.forward(inputs)
         
-        # Synchronize if on CUDA
+        # Synchronize based on device
         if self.device == "cuda":
             torch.cuda.synchronize()
+        elif self.device == "mps":
+            torch.mps.synchronize()
         
-        print("✓ Warmup complete")
+        print("Warmup complete")
     
-    def to(self, device: str):
+    def to(self, device: str) -> 'BaseModel':
         """Move model to a different device.
         
         Args:
-            device: Target device ('cuda' or 'cpu')
+            device: Target device ('cpu', 'cuda', or 'mps')
             
         Returns:
             Self for chaining
         """
         if device == "cuda" and not torch.cuda.is_available():
-            print("⚠️  CUDA not available. Staying on CPU.")
+            print("Warning: CUDA not available. Staying on current device.")
+            return self
+        elif device == "mps" and not torch.backends.mps.is_available():
+            print("Warning: MPS not available. Staying on current device.")
             return self
         
         self.device = device
@@ -208,7 +211,7 @@ class BaseModel(ABC):
         
         return self
     
-    def eval(self):
+    def eval(self) -> 'BaseModel':
         """Set model to evaluation mode.
         
         Returns:
@@ -229,7 +232,7 @@ class BaseModel(ABC):
             f")"
         )
     
-    def print_summary(self):
+    def print_summary(self) -> None:
         """Print a detailed summary of the model."""
         info = self.get_model_info()
         
@@ -241,6 +244,7 @@ class BaseModel(ABC):
         print(f"Device:                {info['device']:>15}")
         print(f"Data Type:             {info['dtype']:>15}")
         print(f"Memory Footprint:      {info['memory_footprint_mb']:>15} MB")
+        print(f"Backend:               {self.backend:>15}")
         print("="*60 + "\n")
 
 # Example DummyModel and test code commented out - only needed for standalone testing
@@ -284,6 +288,7 @@ class BaseModel(ABC):
 #             return self.model(inputs)
 
 
+<<<<<<< HEAD
 # # Test code
 # if __name__ == "__main__":
 #     print("Testing BaseModel implementation...")
@@ -325,3 +330,46 @@ class BaseModel(ABC):
 #     print(model)
 #     
 #     print("\n✓ All tests passed!")
+=======
+# Test code
+if __name__ == "__main__":
+    print("Testing BaseModel implementation...")
+    
+    # Test dummy model
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"\nUsing device: {device}")
+    
+    # Create model
+    print("\n1. Creating DummyModel...")
+    model = DummyModel(device=device, input_size=100, hidden_size=50)
+    
+    # Print summary
+    print("\n2. Model Summary:")
+    model.print_summary()
+    
+    # Test forward pass
+    print("3. Testing forward pass...")
+    inputs = model.prepare_input(batch_size=4)
+    print(f"   Input shape: {inputs.shape}")
+    
+    outputs = model.forward(inputs)
+    print(f"   Output shape: {outputs.shape}")
+    
+    # Test warmup
+    print("\n4. Testing warmup...")
+    model.warmup(num_iterations=5, batch_size=2)
+    
+    # Test device movement
+    if device == "cuda":
+        print("\n5. Testing device movement...")
+        model.to("cpu")
+        print(f"   Model device: {model.device}")
+        model.to("cuda")
+        print(f"   Model device: {model.device}")
+    
+    # Test repr
+    print("\n6. Testing __repr__:")
+    print(model)
+    
+    print("\nAll tests passed!")
+>>>>>>> 01490da (Restructure: Add complete benchmarking suite with profiling tools)
