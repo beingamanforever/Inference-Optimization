@@ -22,6 +22,10 @@ elif [ -f "venv/Scripts/activate" ]; then
     source venv/Scripts/activate
 fi
 
+
+# Fix for macOS SSL certificate issues
+export SSL_CERT_FILE=$(python3 -m certifi)
+
 echo "[2/4] Installing dependencies..."
 pip install --upgrade pip -q
 pip install -r requirements.txt -q

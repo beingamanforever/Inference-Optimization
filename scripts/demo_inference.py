@@ -7,6 +7,12 @@ Demonstrates:
 """
 import torch
 import numpy as np
+import sys
+import os
+
+# Add parent directory to path to allow importing src
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.models import ResNet50ModelWrapper, GPT2ModelWrapper, DistilBERTModelWrapper
 
 
