@@ -2,7 +2,7 @@ torch>=2.1.0
 torchvision
 transformers
 psutil
-pynvml
+nvidia-ml-py
 pandas
 matplotlib
 seaborn

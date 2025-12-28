@@ -11,20 +11,6 @@ Components:
 
 __version__ = "0.1.0"
 
-<<<<<<< HEAD
-# Package-level imports for convenience
-from src.models import ResNet50Model, GPT2Model, DistilBERTModel
-from src.benchmarking import Benchmark, InferenceMetrics
-# from src.profiling import InferenceProfiler
-
-__all__ = [
-    "ResNet50Model",
-    "GPT2Model", 
-    "DistilBERTModel",
-    "Benchmark",
-    "InferenceMetrics",
-    # "InferenceProfiler",
-=======
 # Model Wrappers
 from .models import (
     ResNet50ModelWrapper,
@@ -63,5 +49,4 @@ __all__ = [
     "RooflineCalculator",
     "PythonOverheadAnalyzer",
     "LayerTimer",
->>>>>>> 01490da (Restructure: Add complete benchmarking suite with profiling tools)
 ]
