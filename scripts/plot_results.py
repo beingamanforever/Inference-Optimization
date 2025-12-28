@@ -87,7 +87,20 @@ def generate_plots(benchmark_dir: str = "week1/benchmarks", output_file: str = N
 
     # Save plot
     if output_file is None:
-        output_file = os.path.join(benchmark_dir, "performance_comparison.png")
+        # Determine plots directory (sibling to benchmarks directory)
+        base_dir = os.path.dirname(benchmark_dir.rstrip(os.sep))
+        plots_dir = os.path.join(base_dir, "plots")
+        
+        # Ensure directory exists
+        if not os.path.exists(plots_dir):
+            try:
+                os.makedirs(plots_dir)
+                print(f"Created directory: {plots_dir}")
+            except OSError:
+                # Fallback to benchmark dir if creation fails or structure is different
+                plots_dir = benchmark_dir
+        
+        output_file = os.path.join(plots_dir, "performance_comparison.png")
     
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
     print(f"\nSuccess! Plots saved to: {output_file}")
